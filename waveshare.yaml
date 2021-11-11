@@ -1,0 +1,45 @@
+esphome:
+  name: waveshare
+  platform: ESP32
+  board: wemos_d1_mini32
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: !secret api_password
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Waveshare Fallback Hotspot"
+    password: !secret ap_password
+
+captive_portal:
+
+font:
+  - file: 'fonts/comic.ttf'
+    id: font1
+    size: 8
+
+spi:
+  clk_pin: D0
+  mosi_pin: D1
+
+display:
+  - platform: waveshare_epaper
+    cs_pin: D2
+    dc_pin: D3
+    busy_pin: D4
+    reset_pin: D5
+    model: 2.70in
+    lambda: |-
+      it.print(0, 0, id(font1), "Hello World!");
+
