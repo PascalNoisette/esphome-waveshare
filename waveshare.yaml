@@ -1,7 +1,7 @@
 esphome:
   name: waveshare
   platform: ESP32
-  board: wemos_d1_mini32
+  board: esp32dev
 
 # Enable logging
 logger:
@@ -26,20 +26,59 @@ captive_portal:
 
 font:
   - file: 'fonts/comic.ttf'
-    id: font1
-    size: 8
+    id: date
+    size: 12
+  - file: 'fonts/comic.ttf'
+    id: heure
+    size: 14
+
+  - file: 'fonts/comic.ttf'
+    id: data
+    size: 14
+
+
 
 spi:
-  clk_pin: D0
-  mosi_pin: D1
+  clk_pin: 13
+  mosi_pin: 14
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+sensor:
+  - platform: homeassistant
+    id: inside_temperature
+    entity_id: sensor.baldr_b301_temp
+    internal: true
+  - platform: homeassistant
+    id: outside_temperature
+    entity_id: sensor.baldr_2902_temp
+    internal: true
+  - platform: homeassistant
+    id: pressure
+    entity_id: sensor.air_pressure_template
+    internal: true
 
 display:
   - platform: waveshare_epaper
-    cs_pin: D2
-    dc_pin: D3
-    busy_pin: D4
-    reset_pin: D5
+    cs_pin: 15
+    dc_pin: 27
+    busy_pin: 25
+    reset_pin: 26
     model: 2.70in
+    update_interval: 45s
     lambda: |-
-      it.print(0, 0, id(font1), "Hello World!");
+      // Print time in HH:MM format
+      it.strftime(0, 0, id(date), TextAlign::TOP_LEFT, "%d %B %Y", id(esptime).now());
+      it.strftime(it.get_width(), 0, id(heure), TextAlign::TOP_RIGHT, "%H:%M", id(esptime).now());
 
+      // Print inside temperature (from homeassistant sensor)
+      if (id(inside_temperature).has_state()) {
+        it.printf(127, 30, id(data), TextAlign::TOP_RIGHT , "Interieur %.1f°", id(inside_temperature).state);
+      }
+
+      // Print outside temperature (from homeassistant sensor)
+      if (id(outside_temperature).has_state()) {
+        it.printf(127, 100, id(data), TextAlign::BASELINE_RIGHT , "Exterieur %.1f°", id(outside_temperature).state);
+      }
